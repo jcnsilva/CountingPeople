@@ -9,11 +9,11 @@ Matheus Oliveira
 Veruska Santos
 
 Para executar: 
-- Com arquivo de vídeo: python motion_detector.py --video videos/virat.mp4
-- Da webcam: python motion_detector.py
+- Com arquivo de vídeo: python PeopleCounter.py --video videos/video.mp4
+- Da webcam: python PeopleCounter.py
 
 
-Tutorial: https://www.pyimagesearch.com/2015/05/25/basic-motion-detection-and-tracking-with-python-and-opencv/
+Tutorial: http://www.femb.com.mx/people-counter/people-counter-with-opencv-python/
 
 
 Dataset: 
