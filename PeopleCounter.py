@@ -9,65 +9,64 @@ import argparse
 cnt_up   = 0
 cnt_down = 0
 
-# construct the argument parser and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-v", "--video", help="path to the video file")
-ap.add_argument("-a", "--min-area", type=int, default=500, help="minimum area size")
-args = vars(ap.parse_args())
+# recebe e analisa os argumentos
+argParser = argparse.ArgumentParser()
+argParser.add_argument("-v", "--video", help="path to the video file")
+argParser.add_argument("-a", "--min-area", type=int, default=500, help="minimum area size")
+args = vars(argParser.parse_args())
 
-# if the video argument is None, then we are reading from webcam
+# se nao tem o argumento video, entao vamos ler da webcam
 if args.get("video", None) is None:
     cap = cv2.VideoCapture(0)
     time.sleep(0.25)
  
-else: # otherwise, we are reading from a video file
+else: # caso contrario, vamos abrir e ler o arquivo de video
     cap = cv2.VideoCapture(args["video"])
 
-#Propiedades del video
-##cap.set(3,160) #Width
-##cap.set(4,120) #Height
 
 #Imprime las propiedades de captura a consola
 for i in range(19):
     print i, cap.get(i)
 
-w = cap.get(3)
-h = cap.get(4)
-frameArea = h*w
-areaTH = frameArea/250
-print 'Area Threshold', areaTH
+width = cap.get(3)
+height = cap.get(4)
+frameArea = height*width
 
-#Lineas de entrada/salida
-line_up = int(2*(h/5))
-line_down   = int(3*(h/5))
+# limiar para identificar pessoas
+threshold = 250
+areaTH = frameArea/threshold
 
-up_limit =   int(1*(h/5))
-down_limit = int(4*(h/5))
+up_limit =   int(1*(height/5))
+down_limit = int(4*(height/5))
+
+#Linhas para delimitar se a pessoa esta subindo ou descendo no video
+line_up = int(2*(height/5))
+line_down   = int(3*(height/5))
 
 print "Red line y:",str(line_down)
 print "Blue line y:", str(line_up)
 line_down_color = (255,0,0)
 line_up_color = (0,0,255)
 pt1 =  [0, line_down];
-pt2 =  [w, line_down];
+pt2 =  [width, line_down];
 pts_L1 = np.array([pt1,pt2], np.int32)
 pts_L1 = pts_L1.reshape((-1,1,2))
 pt3 =  [0, line_up];
-pt4 =  [w, line_up];
+pt4 =  [width, line_up];
 pts_L2 = np.array([pt3,pt4], np.int32)
 pts_L2 = pts_L2.reshape((-1,1,2))
 
 pt5 =  [0, up_limit];
-pt6 =  [w, up_limit];
+pt6 =  [width, up_limit];
 pts_L3 = np.array([pt5,pt6], np.int32)
 pts_L3 = pts_L3.reshape((-1,1,2))
 pt7 =  [0, down_limit];
-pt8 =  [w, down_limit];
+pt8 =  [width, down_limit];
 pts_L4 = np.array([pt7,pt8], np.int32)
 pts_L4 = pts_L4.reshape((-1,1,2))
 
-#Substractor de fondo
-fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows = True)
+# subtraindo o fundo, para identificar o que esta em movimento no video
+backgroundSubtractor = cv2.createBackgroundSubtractorMOG2(detectShadows = True)
 
 #Elementos estructurantes para filtros morfoogicos
 kernelOp = np.ones((3,3),np.uint8)
@@ -82,7 +81,7 @@ pid = 1
 
 while(cap.isOpened()):
 ##for image in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
-    #Lee una imagen de la fuente de video
+    # le uma imagem/frame do video
     ret, frame = cap.read()
 ##    frame = image.array
 
@@ -92,21 +91,22 @@ while(cap.isOpened()):
     #   PRE-PROCESAMIENTO   #
     #########################
     
-    #Aplica substraccion de fondo
-    fgmask = fgbg.apply(frame)
-    fgmask2 = fgbg.apply(frame)
+    #Aplica subtracao de fundo
+    fgmask = backgroundSubtractor.apply(frame)
+    fgmask2 = backgroundSubtractor.apply(frame)
 
-    #Binariazcion para eliminar sombras (color gris)
+    # Binariazando para eliminar as sombras
     try:
         ret,imBin= cv2.threshold(fgmask,200,255,cv2.THRESH_BINARY)
         ret,imBin2 = cv2.threshold(fgmask2,200,255,cv2.THRESH_BINARY)
-        #Opening (erode->dilate) para quitar ruido.
+        # Opening (erode->dilate) para eliminar ruido
         mask = cv2.morphologyEx(imBin, cv2.MORPH_OPEN, kernelOp)
         mask2 = cv2.morphologyEx(imBin2, cv2.MORPH_OPEN, kernelOp)
-        #Closing (dilate -> erode) para juntar regiones blancas.
+        # Closing (dilate -> erode) para juntar regioes brancas
         mask =  cv2.morphologyEx(mask , cv2.MORPH_CLOSE, kernelCl)
         mask2 = cv2.morphologyEx(mask2, cv2.MORPH_CLOSE, kernelCl)
-    except:
+
+    except: # quando acaba o video
         print('EOF')
         print 'UP:',cnt_up
         print 'DOWN:',cnt_down
@@ -115,10 +115,15 @@ while(cap.isOpened()):
     #   CONTORNOS   #
     #################
     
-    # RETR_EXTERNAL returns only extreme outer flags. All child contours are left behind.
+    # RETR_EXTERNAL retorna apenas o contorno externo
+    # CHAIN_APPROX_SIMPLE desenha e exibe o contorno
     _, contours0, hierarchy = cv2.findContours(mask2,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+
+    # para cada pessoa identificada
     for cnt in contours0:
         area = cv2.contourArea(cnt)
+
+        # define que o contorno eh uma pessoa se sua area tiver acima de um limiar
         if area > areaTH:
             #################
             #   TRACKING    #
@@ -204,4 +209,6 @@ while(cap.isOpened()):
 #END while(cap.isOpened())
     
 cap.release()
+
+# fecha todas as janelas
 cv2.destroyAllWindows()
