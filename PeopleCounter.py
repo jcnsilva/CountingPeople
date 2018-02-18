@@ -23,16 +23,12 @@ if args.get("video", None) is None:
 else: # caso contrario, vamos abrir e ler o arquivo de video
     cap = cv2.VideoCapture(args["video"])
 
-
-#Imprime las propiedades de captura a consola
-for i in range(19):
-    print i, cap.get(i)
-
+# ha 19 propriedades, se imprimirmos vemos q 3 e 4 sao largura e altura
 width = cap.get(3)
 height = cap.get(4)
 frameArea = height*width
 
-# limiar para identificar pessoas
+# limiar para identificar pessoas, diminuir para usar webcam
 threshold = 250
 areaTH = frameArea/threshold
 
@@ -43,8 +39,6 @@ down_limit = int(4*(height/5))
 line_up = int(2*(height/5))
 line_down   = int(3*(height/5))
 
-print "Red line y:",str(line_down)
-print "Blue line y:", str(line_up)
 line_down_color = (255,0,0)
 line_up_color = (0,0,255)
 pt1 =  [0, line_down];
@@ -87,6 +81,7 @@ while(cap.isOpened()):
 
     for i in persons:
         i.age_one() #age every person one frame
+
     #########################
     #   PRE-PROCESAMIENTO   #
     #########################
@@ -95,7 +90,7 @@ while(cap.isOpened()):
     fgmask = backgroundSubtractor.apply(frame)
     fgmask2 = backgroundSubtractor.apply(frame)
 
-    # Binariazando para eliminar as sombras
+    # Binarizando para eliminar as sombras
     try:
         ret,imBin= cv2.threshold(fgmask,200,255,cv2.THRESH_BINARY)
         ret,imBin2 = cv2.threshold(fgmask2,200,255,cv2.THRESH_BINARY)
@@ -111,12 +106,13 @@ while(cap.isOpened()):
         print 'UP:',cnt_up
         print 'DOWN:',cnt_down
         break
+
     #################
     #   CONTORNOS   #
     #################
     
     # RETR_EXTERNAL retorna apenas o contorno externo
-    # CHAIN_APPROX_SIMPLE desenha e exibe o contorno
+    # CHAIN_APPROX_SIMPLE faz o contorno
     _, contours0, hierarchy = cv2.findContours(mask2,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
     # para cada pessoa identificada
@@ -125,12 +121,14 @@ while(cap.isOpened()):
 
         # define que o contorno eh uma pessoa se sua area tiver acima de um limiar
         if area > areaTH:
+
             #################
-            #   TRACKING    #
+            #   PESSOAS    #
             #################
             
             #Falta agregar condiciones para multipersonas, salidas y entradas de pantalla.
             
+            # recuperando as coordenadas da pessoa
             M = cv2.moments(cnt)
             cx = int(M['m10']/M['m00'])
             cy = int(M['m01']/M['m00'])
@@ -138,9 +136,10 @@ while(cap.isOpened()):
 
             new = True
             if cy in range(up_limit,down_limit):
+
                 for i in persons:
                     if abs(cx-i.getX()) <= w and abs(cy-i.getY()) <= h:
-                        # el objeto esta cerca de uno que ya se detecto antes
+                        # acompanha uma pessoa ja detectada ate cruzar as linhas
                         new = False
                         i.updateCoords(cx,cy)   #actualiza coordenadas en el objeto and resets age
                         if i.going_UP(line_down,line_up) == True:
@@ -150,22 +149,26 @@ while(cap.isOpened()):
                             cnt_down += 1;
                             print "ID:",i.getId(),'crossed going down at',time.strftime("%c")
                         break
+
                     if i.getState() == '1':
                         if i.getDir() == 'down' and i.getY() > down_limit:
                             i.setDone()
                         elif i.getDir() == 'up' and i.getY() < up_limit:
                             i.setDone()
+
                     if i.timedOut():
-                        #sacar i de la lista persons
+                        # remove i da lista de pessoas
                         index = persons.index(i)
                         persons.pop(index)
-                        del i     #liberar la memoria de i
+                        del i
+                
                 if new == True:
                     p = Person.MyPerson(pid,cx,cy, max_p_age)
                     persons.append(p)
-                    pid += 1     
+                    pid += 1
+
             #################
-            #   DIBUJOS     #
+            #   DESENHOS     #
             #################
             cv2.circle(frame,(cx,cy), 5, (0,0,255), -1)
             img = cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)            
@@ -186,7 +189,7 @@ while(cap.isOpened()):
         cv2.putText(frame, str(i.getId()),(i.getX(),i.getY()),font,0.3,i.getRGB(),1,cv2.LINE_AA)
         
     #################
-    #   IMAGANES    #
+    #   LINHAS    #
     #################
     str_up = 'UP: '+ str(cnt_up)
     str_down = 'DOWN: '+ str(cnt_down)
@@ -199,10 +202,10 @@ while(cap.isOpened()):
     cv2.putText(frame, str_down ,(10,90),font,0.5,(255,255,255),2,cv2.LINE_AA)
     cv2.putText(frame, str_down ,(10,90),font,0.5,(255,0,0),1,cv2.LINE_AA)
 
-    cv2.imshow('Frame',frame)
+    cv2.imshow('Counter People',frame)
     #cv2.imshow('Mask',mask)    
     
-    #preisonar ESC para salir
+    #pressonar ESC para sair
     k = cv2.waitKey(30) & 0xff
     if k == 27:
         break
