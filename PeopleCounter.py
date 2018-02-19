@@ -19,7 +19,7 @@ args = vars(argParser.parse_args())
 if args.get("video", None) is None:
     cap = cv2.VideoCapture(0)
     time.sleep(0.25)
- 
+
 else: # caso contrario, vamos abrir e ler o arquivo de video
     cap = cv2.VideoCapture(args["video"])
 
@@ -29,7 +29,7 @@ height = cap.get(4)
 frameArea = height*width
 
 # limiar para identificar pessoas, diminuir para usar webcam
-threshold = 250
+threshold = 350
 areaTH = frameArea/threshold
 
 up_limit =   int(1*(height/5))
@@ -60,12 +60,11 @@ pts_L4 = np.array([pt7,pt8], np.int32)
 pts_L4 = pts_L4.reshape((-1,1,2))
 
 # subtraindo o fundo, para identificar o que esta em movimento no video
-backgroundSubtractor = cv2.createBackgroundSubtractorMOG2(detectShadows = True)
+backgroundSubtractor = cv2.createBackgroundSubtractorMOG2()
 
 #Elementos estructurantes para filtros morfoogicos
-kernelOp = np.ones((3,3),np.uint8)
-kernelOp2 = np.ones((5,5),np.uint8)
-kernelCl = np.ones((11,11),np.uint8)
+kernelOp = np.ones((5,5),np.uint8)
+kernelCl = np.ones((9,9),np.uint8)
 
 #Variables
 font = cv2.FONT_HERSHEY_SIMPLEX
@@ -85,7 +84,7 @@ while(cap.isOpened()):
     #########################
     #   PRE-PROCESAMIENTO   #
     #########################
-    
+
     #Aplica subtracao de fundo
     fgmask = backgroundSubtractor.apply(frame)
     fgmask2 = backgroundSubtractor.apply(frame)
@@ -110,7 +109,7 @@ while(cap.isOpened()):
     #################
     #   CONTORNOS   #
     #################
-    
+
     # RETR_EXTERNAL retorna apenas o contorno externo
     # CHAIN_APPROX_SIMPLE faz o contorno
     _, contours0, hierarchy = cv2.findContours(mask2,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
@@ -125,9 +124,9 @@ while(cap.isOpened()):
             #################
             #   PESSOAS    #
             #################
-            
+
             #Falta agregar condiciones para multipersonas, salidas y entradas de pantalla.
-            
+
             # recuperando as coordenadas da pessoa
             M = cv2.moments(cnt)
             cx = int(M['m10']/M['m00'])
@@ -161,7 +160,7 @@ while(cap.isOpened()):
                         index = persons.index(i)
                         persons.pop(index)
                         del i
-                
+
                 if new == True:
                     p = Person.MyPerson(pid,cx,cy, max_p_age)
                     persons.append(p)
@@ -171,11 +170,11 @@ while(cap.isOpened()):
             #   DESENHOS     #
             #################
             cv2.circle(frame,(cx,cy), 5, (0,0,255), -1)
-            img = cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)            
+            img = cv2.rectangle(frame,(x,y),(x+w,y+h),(0,255,0),2)
             #cv2.drawContours(frame, cnt, -1, (0,255,0), 3)
-            
+
     #END for cnt in contours0
-            
+
     #########################
     # DIBUJAR TRAYECTORIAS  #
     #########################
@@ -187,7 +186,7 @@ while(cap.isOpened()):
 ##        if i.getId() == 9:
 ##            print str(i.getX()), ',', str(i.getY())
         cv2.putText(frame, str(i.getId()),(i.getX(),i.getY()),font,0.3,i.getRGB(),1,cv2.LINE_AA)
-        
+
     #################
     #   LINHAS    #
     #################
@@ -203,14 +202,14 @@ while(cap.isOpened()):
     cv2.putText(frame, str_down ,(10,90),font,0.5,(255,0,0),1,cv2.LINE_AA)
 
     cv2.imshow('Counter People',frame)
-    #cv2.imshow('Mask',mask)    
-    
+    #cv2.imshow('Mask',mask)
+
     #pressonar ESC para sair
     k = cv2.waitKey(30) & 0xff
     if k == 27:
         break
 #END while(cap.isOpened())
-    
+
 cap.release()
 
 # fecha todas as janelas
