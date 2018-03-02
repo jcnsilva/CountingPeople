@@ -19,8 +19,8 @@ else: # Or read video file
     cap = cv2.VideoCapture(args["video"])
 
 # In and out counters
-upCounter = 0
-downCounter = 0
+leftCounter = 0
+rightCounter = 0
 
 # Set threshold
 w = cap.get(3)
@@ -30,29 +30,29 @@ threshold = 350
 areaTH = frameArea/threshold
 
 # Draw delimiting lines
-upperLine = int(2.0/5 * h)
-lowerLine   = int(3.0/5 * h)
+leftmostLine = int(1.0/6 * w)
+rightmostLine   = int(5.0/6 * w)
 
-upperLimit =   int(1.0/5 * h)
-lowerLimit = int(4.0/5 * h)
+leftmostLimit =   int(1.0/12 * w)
+rightmostLimit = int(11.0/12 * w)
 
-upperLineColor = (255,0,0)
-lowerLineColor = (0,0,255)
-pt1 =  [0, lowerLine]
-pt2 =  [w, lowerLine]
+leftmostLineColor = (255,0,0)
+rightmostLineColor = (0,0,255)
+pt1 =  [rightmostLine, 0]
+pt2 =  [rightmostLine, h]
 pts_L1 = np.array([pt1,pt2], np.int32)
 pts_L1 = pts_L1.reshape((-1,1,2))
-pt3 =  [0, upperLine]
-pt4 =  [w, upperLine]
+pt3 =  [leftmostLine, 0]
+pt4 =  [leftmostLine, h]
 pts_L2 = np.array([pt3,pt4], np.int32)
 pts_L2 = pts_L2.reshape((-1,1,2))
 
-pt5 =  [0, upperLimit]
-pt6 =  [w, upperLimit]
+pt5 =  [leftmostLimit, 0]
+pt6 =  [leftmostLimit, h]
 pts_L3 = np.array([pt5,pt6], np.int32)
 pts_L3 = pts_L3.reshape((-1,1,2))
-pt7 =  [0, lowerLimit]
-pt8 =  [w, lowerLimit]
+pt7 =  [rightmostLimit, 0]
+pt8 =  [rightmostLimit, h]
 pts_L4 = np.array([pt7,pt8], np.int32)
 pts_L4 = pts_L4.reshape((-1,1,2))
 
@@ -92,8 +92,8 @@ while(cap.isOpened()):
     except:
         # If there are no more frames to show...
         print('EOF')
-        print('UP: %d' % upCounter)
-        print('DOWN: %d' % downCounter)
+        print('Left: %d' % leftCounter)
+        print('Out: %d' % rightCounter)
         break
 
 
@@ -121,7 +121,7 @@ while(cap.isOpened()):
             x,y,w,h = cv2.boundingRect(cnt)
 
             newPerson = True
-            if cy in range(upperLimit, lowerLimit):
+            if cy in range(leftmostLimit, rightmostLimit):
                 for person in persons:
                     if abs(x - person.getX()) <= w and abs(y - person.getY()) <= h:
                         # Follow detected persons until they cross the limit lines
@@ -129,16 +129,16 @@ while(cap.isOpened()):
                         newPerson = False
                         person.updateCoords(cx, cy)
 
-                        if person.going_UP(lowerLine,upperLine) == True:
-                            upCounter += 1
-                        elif person.going_DOWN(lowerLine,upperLine) == True:
-                            downCounter += 1
+                        if person.goingLeft(rightmostLine,leftmostLine) == True:
+                            leftCounter += 1
+                        elif person.goingRight(rightmostLine,leftmostLine) == True:
+                            rightCounter += 1
                         break
 
                     if person.getState() == '1':
-                        if person.getDir() == 'down' and person.getY() > lowerLimit:
+                        if person.getDir() == 'right' and person.getY() > rightmostLimit:
                             person.setDone()
-                        elif person.getDir() == 'up' and person.getY() < upperLimit:
+                        elif person.getDir() == 'left' and person.getY() < leftmostLimit:
                             person.setDone()
 
                     if person.timedOut():
@@ -148,7 +148,7 @@ while(cap.isOpened()):
                         del person
 
                 if newPerson == True:
-                    person = Person.MyPerson(pid, cx, cy, max_p_age)
+                    person = Person.Person(pid, cx, cy, max_p_age)
                     persons.append(person)
                     pid += 1
 
@@ -175,16 +175,16 @@ while(cap.isOpened()):
     ###################
     # FRAME DETAILS  #
     ##################
-    str_up = 'UP: ' + str(upCounter)
-    str_down = 'DOWN: ' + str(downCounter)
-    frame = cv2.polylines(frame,[pts_L1],False,lowerLineColor,thickness=2)
-    frame = cv2.polylines(frame,[pts_L2],False,upperLineColor,thickness=2)
+    leftMsg = 'Left: ' + str(leftCounter)
+    rightMsg = 'Right: ' + str(rightCounter)
+    frame = cv2.polylines(frame,[pts_L1],False,rightmostLineColor,thickness=2)
+    frame = cv2.polylines(frame,[pts_L2],False,leftmostLineColor,thickness=2)
     frame = cv2.polylines(frame,[pts_L3],False,(255,255,255),thickness=1)
     frame = cv2.polylines(frame,[pts_L4],False,(255,255,255),thickness=1)
-    cv2.putText(frame, str_up ,(10,40),font,0.5,(255,255,255),2,cv2.LINE_AA)
-    cv2.putText(frame, str_up ,(10,40),font,0.5,upperLineColor,1,cv2.LINE_AA)
-    cv2.putText(frame, str_down ,(10,90),font,0.5,(255,255,255),2,cv2.LINE_AA)
-    cv2.putText(frame, str_down ,(10,90),font,0.5,lowerLineColor,1,cv2.LINE_AA)
+    cv2.putText(frame, leftMsg ,(10,40),font,0.5,(255,255,255),2,cv2.LINE_AA)
+    cv2.putText(frame, leftMsg ,(10,40),font,0.5,leftmostLineColor,1,cv2.LINE_AA)
+    cv2.putText(frame, rightMsg ,(10,90),font,0.5,(255,255,255),2,cv2.LINE_AA)
+    cv2.putText(frame, rightMsg ,(10,90),font,0.5,rightmostLineColor,1,cv2.LINE_AA)
 
     cv2.imshow('People Counting',frame)
 
