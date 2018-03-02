@@ -1,20 +1,19 @@
 # Software reconhecedor de pessoas em tempo real
 
-Projeto desenvolvido para as disciplinas Inteligência Artificial e Visão Computacional - UFCG
+**Projeto desenvolvido para as disciplinas Inteligência Artificial e Visão Computacional - UFCG**
 
-Equipe: Bruno Rocha
-Diana Marcela
-Júlio César
-Matheus Oliveira
-Veruska Santos
+Equipe: 
+* Bruno Rocha
+* Diana Marcela
+* Júlio César
+* Matheus Oliveira
+* Veruska Santos
 
 Para executar: 
-- Com arquivo de vídeo: python PeopleCounter.py --video videos/video.mp4
-- Da webcam: python PeopleCounter.py
-
+- Com arquivo de vídeo: python countingPeople.py --video videos/video.mp4
+- Da webcam: python countingPeople.py
 
 Tutorial: http://www.femb.com.mx/people-counter/people-counter-with-opencv-python/
-
 
 Dataset: 
 https://data.kitware.com/#collection/56f56db28d777f753209ba9f
