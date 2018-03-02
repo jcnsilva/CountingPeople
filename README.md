@@ -1,4 +1,4 @@
-# Software reconhecedor de pessoas em tempo real
+# Software contador de pessoas em tempo real
 
 **Projeto desenvolvido para as disciplinas Inteligência Artificial e Visão Computacional - UFCG**
 
@@ -16,6 +16,6 @@ Para executar:
 Tutorial: http://www.femb.com.mx/people-counter/people-counter-with-opencv-python/
 
 Dataset: 
-https://data.kitware.com/#collection/56f56db28d777f753209ba9f
-https://www.cs.utexas.edu/~chaoyeh/web_action_data/dataset_list.html
-http://www.vision.ee.ethz.ch/en/datasets/
+* https://data.kitware.com/#collection/56f56db28d777f753209ba9f
+* https://www.cs.utexas.edu/~chaoyeh/web_action_data/dataset_list.html
+* http://www.vision.ee.ethz.ch/en/datasets/
