@@ -1,4 +1,4 @@
-# Software contador de pessoas em tempo real
+# Contador de pessoas em vídeo
 
 **Projeto desenvolvido para as disciplinas Inteligência Artificial e Visão Computacional - UFCG**
 
