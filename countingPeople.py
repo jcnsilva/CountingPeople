@@ -26,15 +26,15 @@ downCounter = 0
 w = cap.get(3)
 h = cap.get(4)
 frameArea = h*w
-threshold = 250
+threshold = 350
 areaTH = frameArea/threshold
 
 # Draw delimiting lines
-upperLine = int(2/10 * h)
-lowerLine   = int(8/10 * h)
+upperLine = int(2.0/5 * h)
+lowerLine   = int(3.0/5 * h)
 
-upperLimit =   int(1/10 * h)
-lowerLimit = int(9/10 * h)
+upperLimit =   int(1.0/5 * h)
+lowerLimit = int(4.0/5 * h)
 
 upperLineColor = (255,0,0)
 lowerLineColor = (0,0,255)
@@ -57,7 +57,7 @@ pts_L4 = np.array([pt7,pt8], np.int32)
 pts_L4 = pts_L4.reshape((-1,1,2))
 
 # Create the background subtractor
-fgbg = cv2.createBackgroundSubtractorMOG2()
+backgroundSubtractor = cv2.createBackgroundSubtractorMOG2()
 
 # Create kernel for opening
 kernelOp = np.ones((3,3), np.uint8)
@@ -79,15 +79,16 @@ while(cap.isOpened()):
         per.age_one()
 
     # Use the substractor
-    fgmask = fgbg.apply(frame)
+    fgmask = backgroundSubtractor.apply(frame)
 
     try:
+        # Apply threshold to remove shadows
         ret, imBin = cv2.threshold(fgmask, 150, 255, cv2.THRESH_BINARY)
         # Opening (erode->dilate) to remove noise
         mask = cv2.morphologyEx(imBin, cv2.MORPH_OPEN, kernelOp)
         # Closing (dilate -> erode) to join white regions
         mask = cv2.morphologyEx(mask , cv2.MORPH_CLOSE, kernelCl)
-        cv2.imshow('Original Frame',frame)
+
     except:
         # If there are no more frames to show...
         print('EOF')
@@ -102,7 +103,7 @@ while(cap.isOpened()):
 
     # RETR_EXTERNAL returns only the outer contour retorna apenas o contorno externo
     # CHAIN_APPROX_SIMPLE draw contour
-    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    _, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     #################
     #    PEOPLE     #
@@ -140,14 +141,14 @@ while(cap.isOpened()):
                         elif person.getDir() == 'up' and person.getY() < upperLimit:
                             person.setDone()
 
-                    if person.isDone():
+                    if person.timedOut():
                         # remove i from the list of people
                         index = persons.index(person)
                         persons.pop(index)
                         del person
 
                 if newPerson == True:
-                    person = Person.Person(pid, cx, cy, max_p_age)
+                    person = Person.MyPerson(pid, cx, cy, max_p_age)
                     persons.append(person)
                     pid += 1
 
@@ -156,16 +157,16 @@ while(cap.isOpened()):
                 #################
                 cv2.circle(frame, (cx,cy), 5, (0,0,255), -1)
                 img = cv2.rectangle(frame, (x,y), (x+w, y+h), (255,0,0), 2)
-                cv2.drawContours(frame, cnt, -1, (0,255,0), 3, 8)
+                #cv2.drawContours(frame, cnt, -1, (0,255,0), 3, 8)
 
     #########################
     #   DRAW TRAJECTORIES   #
     #########################
     for person in persons:
-        if len(person.getTracks()) >= 2:
-            pts = np.array(person.getTracks(), np.int32)
-            pts = pts.reshape((-1,1,2))
-            frame = cv2.polylines(frame,[pts],False,person.getRGB())
+ #       if len(person.getTracks()) >= 2:
+ #           pts = np.array(person.getTracks(), np.int32)
+ #           pts = pts.reshape((-1,1,2))
+ #           frame = cv2.polylines(frame,[pts],False,person.getRGB())
 
         cv2.putText(frame, str(person.getId()), \
             (person.getX(), person.getY()), font, 0.3, \
