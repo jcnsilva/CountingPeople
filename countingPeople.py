@@ -7,7 +7,6 @@ import Person
 # Receive arguments
 argParser = argparse.ArgumentParser()
 argParser.add_argument("-v", "--video", help="path to the video file")
-argParser.add_argument("-a", "--min-area", type=int, default=500, help="minimum area size")
 args = vars(argParser.parse_args())
 
 # Read from webcam
@@ -41,20 +40,16 @@ rightmostLineColor = (0,0,255)
 pt1 =  [rightmostLine, 0]
 pt2 =  [rightmostLine, h]
 pts_L1 = np.array([pt1,pt2], np.int32)
-pts_L1 = pts_L1.reshape((-1,1,2))
 pt3 =  [leftmostLine, 0]
 pt4 =  [leftmostLine, h]
 pts_L2 = np.array([pt3,pt4], np.int32)
-pts_L2 = pts_L2.reshape((-1,1,2))
 
 pt5 =  [leftmostLimit, 0]
 pt6 =  [leftmostLimit, h]
 pts_L3 = np.array([pt5,pt6], np.int32)
-pts_L3 = pts_L3.reshape((-1,1,2))
 pt7 =  [rightmostLimit, 0]
 pt8 =  [rightmostLimit, h]
 pts_L4 = np.array([pt7,pt8], np.int32)
-pts_L4 = pts_L4.reshape((-1,1,2))
 
 # Create the background subtractor
 backgroundSubtractor = cv2.createBackgroundSubtractorMOG2()
@@ -159,18 +154,6 @@ while(cap.isOpened()):
                 img = cv2.rectangle(frame, (x,y), (x+w, y+h), (255,0,0), 2)
                 #cv2.drawContours(frame, cnt, -1, (0,255,0), 3, 8)
 
-    #########################
-    #   DRAW TRAJECTORIES   #
-    #########################
-    for person in persons:
- #       if len(person.getTracks()) >= 2:
- #           pts = np.array(person.getTracks(), np.int32)
- #           pts = pts.reshape((-1,1,2))
- #           frame = cv2.polylines(frame,[pts],False,person.getRGB())
-
-        cv2.putText(frame, str(person.getId()), \
-            (person.getX(), person.getY()), font, 0.3, \
-            person.getRGB(), 1, cv2.LINE_AA)
 
     ###################
     # FRAME DETAILS  #
