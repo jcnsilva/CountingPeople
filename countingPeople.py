@@ -25,8 +25,7 @@ rightCounter = 0
 w = cap.get(3)
 h = cap.get(4)
 frameArea = h*w
-threshold = 350
-areaTH = frameArea/threshold
+areaTH = frameArea * 0.003
 
 # Draw delimiting lines
 leftmostLine = int(1.0/6 * w)
@@ -67,18 +66,19 @@ pid = 1
 
 while(cap.isOpened()):
 
-    # Read a frame
-    ret, frame = cap.read()
-
-    for per in persons:
-        per.age_one()
-
-    # Use the substractor
-    fgmask = backgroundSubtractor.apply(frame)
-
     try:
+        # Read a frame
+        ret, frame = cap.read()
+
+        for per in persons:
+            per.age_one()
+
+        # Use the substractor
+        fgmask = backgroundSubtractor.apply(frame)
+
+
         # Apply threshold to remove shadows
-        ret, imBin = cv2.threshold(fgmask, 150, 255, cv2.THRESH_BINARY)
+        ret, imBin = cv2.threshold(fgmask, 127, 255, cv2.THRESH_BINARY)
         # Opening (erode->dilate) to remove noise
         mask = cv2.morphologyEx(imBin, cv2.MORPH_OPEN, kernelOp)
         # Closing (dilate -> erode) to join white regions
@@ -88,7 +88,7 @@ while(cap.isOpened()):
         # If there are no more frames to show...
         print('EOF')
         print('Left: %d' % leftCounter)
-        print('Out: %d' % rightCounter)
+        print('Right: %d' % rightCounter)
         break
 
 
