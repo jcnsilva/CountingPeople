@@ -26,6 +26,8 @@ corretamente os argumentos que correspondem ao formato de cada frame;
 Tutorial: http://www.femb.com.mx/people-counter/people-counter-with-opencv-python/
 
 Dataset: 
-* https://data.kitware.com/#collection/56f56db28d777f753209ba9f
-* https://www.cs.utexas.edu/~chaoyeh/web_action_data/dataset_list.html
-* http://www.vision.ee.ethz.ch/en/datasets/
+- https://www.d2.mpi-inf.mpg.de/node/428
+- http://www.polymtl.ca/litiv/codes-et-bases-de-donnees
+- http://www.vision.ee.ethz.ch/en/datasets/
+- http://www.gti.ssr.upm.es/data/Lab_database.html
+- https://cvlab.epfl.ch/data/pom
