@@ -12,7 +12,7 @@ How to execute:
 - Using a video file: python countingPeople.py --video videos/video.mp4
 - Using the webcam: python countingPeople.py
 
-Based on this [tutorial](http://www.femb.com.mx/people-counter/people-counter-with-opencv-python/).
+Partly based on this [tutorial](http://www.femb.com.mx/people-counter/people-counter-with-opencv-python/).
 
 Datasets: 
 - https://www.d2.mpi-inf.mpg.de/node/428
